@@ -3,6 +3,7 @@ import urllib.robotparser
 from bs4 import BeautifulSoup
 import requests
 import socket
+import re
 
 
 #clean URL
