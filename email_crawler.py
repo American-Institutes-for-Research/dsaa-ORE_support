@@ -139,7 +139,7 @@ else:
     print("Error: The file must contain a 'scrapability' column.")
     sys.exit(1)
 
-df = df.reset_index()
+df = df.reset_index(drop=True)
 
 
 #Looking at valid (scrapable) urls
@@ -246,8 +246,6 @@ if renamed[2]:
 
 columns_to_merge = df.columns.difference(['emails'])
 full_dataset = full_dataset.merge(df[columns_to_merge], how='outer')
-if 'index' in full_dataset.columns and 'index' not in columns_to_merge:
-    full_dataset = full_dataset.drop(['index'], axis=1)
 
 full_dataset.to_excel('crawled_emails.xlsx', index=False)
 
