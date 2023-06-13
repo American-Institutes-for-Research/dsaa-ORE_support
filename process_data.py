@@ -103,7 +103,7 @@ if renamed[1]:
 if renamed[2]:
     df = df.rename(columns = {'scrapability' : 'Scrapability'})
 
-columns_to_merge = df.columns.difference(['emails'])
-full_dataset = full_dataset.merge(df[columns_to_merge], how='outer')
+
+full_dataset = full_dataset.merge(df, how='outer')
 
 full_dataset.to_excel('crawled_emails_from_json.xlsx', index=False)

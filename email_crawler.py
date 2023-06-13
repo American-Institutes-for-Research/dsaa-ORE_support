@@ -200,8 +200,9 @@ for i in range(len(urls)):
             results_dict[contact_url] = emails
             code_dict[contact_url] = code
             website_mapping.setdefault(i, []).append(contact_url)
-            
-    if i % 100 == 0 and i != 0:
+    if (i <= 25):
+        print(f"Current progress: {i} / {len(urls)}         Elapsed time: {round(time.time() - start_time, 1)} secs")
+    if i % 50 == 0 and i != 0:
         print(f"Current progress: {i} / {len(urls)}         Elapsed time: {round(time.time() - start_time, 1)} secs")
     #Save periodically to be safe
     if i % 100 == 0 and i != 0:
@@ -244,8 +245,7 @@ if renamed[1]:
 if renamed[2]:
     df = df.rename(columns = {'scrapability' : 'Scrapability'})
 
-columns_to_merge = df.columns.difference(['emails'])
-full_dataset = full_dataset.merge(df[columns_to_merge], how='outer')
+full_dataset = full_dataset.merge(df, how='outer')
 
 full_dataset.to_excel('crawled_emails.xlsx', index=False)
 
