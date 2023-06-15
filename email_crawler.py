@@ -8,13 +8,13 @@ from bs4 import BeautifulSoup
 from googlesearch import search
 import ssl
 import socket
-from requests.exceptions import SSLError, ConnectionError
+from requests.exceptions import SSLError, InvalidURL, ConnectionError
 import retry
 import json
 import sys
 import time
 
-socket.setdefaulttimeout(15) #How many seconds to wait before skipping a website
+socket.setdefaulttimeout(5) #How many seconds to wait before skipping a website
 ssl._create_default_https_context = ssl._create_unverified_context #fixed a bug involving certificates
 
 
@@ -36,6 +36,8 @@ def find_email_addresses(url):
         return [], response.status_code
     
     html_content = response.text
+    if html_content == '' or 'dnserrorassist' in html_content:
+        raise InvalidURL("Website does not exist")
 
     # Regular expression pattern to match email addresses
     email_pattern = r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}\b'
@@ -136,7 +138,7 @@ else:
 
 df = df.reset_index(drop=True)
 
-
+df['scrapability_new'] = df['scrapability']
 #Looking at valid (scrapable) urls
 urls = df['website'].tolist()
 results_dict = {}
@@ -157,13 +159,20 @@ for i in range(len(urls)):
         try:
             url = url.replace("https://", "http://")
             emails, code = find_email_addresses(url)
+        except InvalidURL as e:
+            emails = []
+            code = -1
+            df.loc[i,'scrapability_new'] = 'invalid URL'
         except:
             emails = []
             code = -1
+    except InvalidURL as e:
+        emails = []
+        code = -1
+        df.loc[i,'scrapability_new'] = 'invalid URL'
     except:
         emails = []
         code = -1
-
     #remove duplicates
     emails = list(set(emails))
     results_dict[url] = emails
@@ -240,7 +249,11 @@ if renamed[1]:
 if renamed[2]:
     df = df.rename(columns = {'scrapability' : 'Scrapability'})
 
+
 full_dataset = full_dataset.merge(df, how='outer')
+
+full_dataset['scrapability_new'] = full_dataset['scrapability_new'].fillna(full_dataset['scrapability'])
+full_dataset.drop('scrapability', axis=1, inplace=True)
 
 full_dataset.to_excel('crawled_emails.xlsx', index=False)
 
