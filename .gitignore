@@ -4,3 +4,6 @@
 *.xlsx
 *.csv
 *.json
+Input/
+Output/
+Archive/

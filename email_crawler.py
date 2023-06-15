@@ -8,13 +8,13 @@ from bs4 import BeautifulSoup
 from googlesearch import search
 import ssl
 import socket
-from requests.exceptions import SSLError, HTTPError, ConnectionError
+from requests.exceptions import SSLError, ConnectionError
 import retry
 import json
 import sys
 import time
 
-socket.setdefaulttimeout(10) #How many seconds to wait before skipping a website
+socket.setdefaulttimeout(15) #How many seconds to wait before skipping a website
 ssl._create_default_https_context = ssl._create_unverified_context #fixed a bug involving certificates
 
 
@@ -37,20 +37,13 @@ def find_email_addresses(url):
     
     html_content = response.text
 
-    # Create a Beautiful Soup object to parse the HTML
-    soup = BeautifulSoup(html_content, 'html.parser')
-
-    # Find all text nodes in the HTML
-    text_nodes = soup.find_all(text=True)
-
     # Regular expression pattern to match email addresses
     email_pattern = r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}\b'
 
     # Extract email addresses from the text nodes
     email_addresses = []
-    for node in text_nodes:
-        matches = re.findall(email_pattern, node)
-        email_addresses.extend(matches)
+    matches = re.findall(email_pattern, html_content)
+    email_addresses.extend(matches)
 
     return email_addresses, response.status_code
 
@@ -77,6 +70,8 @@ def crawl_page(url):
     contact_links = [links[i] for i in range(len(links)) if keep[i]]
     new_links = []
     for link in contact_links:
+        if " " in link:
+            link = re.search(r"http[^ ]+", link).group() #Fixes cases where additional text is attached to the beginning of a found link
         new_links.append(urllib.parse.urljoin(url_base, link))
     return new_links
 
@@ -205,7 +200,7 @@ for i in range(len(urls)):
     if i % 50 == 0 and i != 0:
         print(f"Current progress: {i} / {len(urls)}         Elapsed time: {round(time.time() - start_time, 1)} secs")
     #Save periodically to be safe
-    if i % 100 == 0 and i != 0:
+    if i % 50 == 0 and i != 0:
         json.dump(results_dict, open("results_dict.json", 'w' ))
         json.dump(code_dict, open("code_dict.json", 'w' ))
         json.dump(website_mapping, open("website_mapping.json", 'w' ))

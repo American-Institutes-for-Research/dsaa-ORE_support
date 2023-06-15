@@ -7,13 +7,13 @@ import math
 from googlesearch import search
 import ssl
 import socket
-from requests.exceptions import SSLError, HTTPError, ConnectionError
+from requests.exceptions import SSLError, InvalidURL, ConnectionError
 import retry
 import json
 import sys
 import time
 
-socket.setdefaulttimeout(10) #How many seconds to wait before skipping a website
+socket.setdefaulttimeout(15) #How many seconds to wait before skipping a website
 ssl._create_default_https_context = ssl._create_unverified_context #fixed a bug involving certificates
 
 @retry.retry(ConnectionError, tries=3, delay=1)
@@ -25,23 +25,27 @@ def check_scrapability(url):
     - url (str): The URL of the webpage to scrape.
 
     Returns:
-    - Tuple: A tuple containing a boolean for if the website can be scraped, and a boolean for if the site was skipped
+    - Tuple: A tuple containing a boolean for if the website can be scraped, and an int for if the site was skipped (0 for not skipped, 1 for skipped, 2 for invalid url)
     """
     try:
         rp = urllib.robotparser.RobotFileParser()
         rp.set_url(url+'robots.txt')
         rp.read()
-        return rp.can_fetch("*", url), False
+        return rp.can_fetch("*", url), 0
     except SSLError as e:
         try:
             url = url.replace("https://", "http://")
             rp.set_url(url+'robots.txt')
             rp.read()
-            return rp.can_fetch("*", url), False
+            return rp.can_fetch("*", url), 0
+        except InvalidURL as e:
+            return False, 2
         except:
-            return False, True
+            return False, 1
+    except InvalidURL as e:
+        return False, 2
     except:
-        return False, True
+        return False, 1
     
 #Read in the data
 if len(sys.argv) < 2:
@@ -86,7 +90,7 @@ start_time = time.time()
 print(f"Current progress: 0 / {len(urls)}         Elapsed time: 0 secs")
 #for each website
 for i in range(len(urls)):
-    if i % 100 == 0 and i != 0:
+    if i % 50 == 0 and i != 0:
         print(f"Current progress: {i} / {len(urls)}         Elapsed time: {round(time.time() - start_time, 1)} secs")
 
     url = urls[i]
@@ -95,8 +99,10 @@ for i in range(len(urls)):
         continue
     can_scrape, skipped = check_scrapability(url)
     if not can_scrape:
-        if skipped:
+        if skipped == 1:
             scrapability.append('site skipped')
+        elif skipped == 2:
+            scrapability.append('invalid URL')
         else:
             scrapability.append(False)
         continue
