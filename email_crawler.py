@@ -227,8 +227,8 @@ for i, count in enumerate(counts):
     collapsed_list.append(list(set([emails for website in group for emails in website])))
 df['emails'] = collapsed_list
 
-#Remove fake emails
-to_remove = ["example","test","domain","email","@sentry","wixpress","automattic"]
+#Remove fake emails and false-positives
+to_remove = ["example","test","domain","email","@sentry","wixpress","automattic",".png"]
 df['emails'] = df['emails'].apply(lambda lst: [elem for elem in lst if not any(substr in elem for substr in to_remove)])
 
 #to get details on the response codes and the specific website urls that emails came from, look at the code_dict and results_dict, respectively (the keys are the urls)
