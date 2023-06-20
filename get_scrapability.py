@@ -13,7 +13,7 @@ import json
 import sys
 import time
 
-socket.setdefaulttimeout(15) #How many seconds to wait before skipping a website
+socket.setdefaulttimeout(5) #How many seconds to wait before skipping a website
 ssl._create_default_https_context = ssl._create_unverified_context #fixed a bug involving certificates
 
 @retry.retry(ConnectionError, tries=3, delay=1)
