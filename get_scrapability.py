@@ -19,7 +19,7 @@ import time
 import warnings
 warnings.filterwarnings("ignore")
 
-socket.setdefaulttimeout(10) #How many seconds to wait before skipping a website
+socket.setdefaulttimeout(5) #How many seconds to wait before skipping a website
 ssl._create_default_https_context = ssl._create_unverified_context #fixed a bug involving certificates
 
 

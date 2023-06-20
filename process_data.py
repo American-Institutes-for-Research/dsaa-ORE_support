@@ -93,7 +93,7 @@ df = df.iloc[:len(collapsed_list)]
 df['emails'] = collapsed_list
 
 #Remove fake emails
-to_remove = ["example","test","domain","email","@sentry","wixpress","automattic"]
+to_remove = ["example","test","domain","email","@sentry","wixpress","automattic",".png",".jpg"]
 df['emails'] = df['emails'].apply(lambda lst: [elem for elem in lst if not any(substr in elem for substr in to_remove)])
 
 if renamed[0]:

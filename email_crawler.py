@@ -36,7 +36,9 @@ def find_email_addresses(url):
         return [], response.status_code
     
     html_content = response.text
-    if html_content == '' or 'dnserrorassist' in html_content:
+    invalid_regex = r'dnserrorassist|page not found|404 not found|response code 403|error 404|404 error|does not exist|doesn\'t exist|no longer exists|not be found|cannot find the page|couldn\'t find the page|directory not found|HTTP Error|check the URL|not a web page'
+    invalid_search = re.findall(invalid_regex, html_content)
+    if html_content == '' or len(invalid_search) > 0:
         raise InvalidURL("Website does not exist")
 
     # Regular expression pattern to match email addresses
@@ -142,7 +144,7 @@ df['scrapability_new'] = df['scrapability']
 #Looking at valid (scrapable) urls
 urls = df['website'].tolist()
 results_dict = {}
-code_dict = {}
+#code_dict = {}
 website_mapping = {}
 print(f"Number of websites to scrape: {len(urls)}")
 start_time = time.time()
@@ -176,7 +178,7 @@ for i in range(len(urls)):
     #remove duplicates
     emails = list(set(emails))
     results_dict[url] = emails
-    code_dict[url] = code
+    #code_dict[url] = code
     website_mapping.setdefault(i, []).append(url)
 
     #next, crawl the webpage for "contact" and "about" links
@@ -202,20 +204,20 @@ for i in range(len(urls)):
             #remove duplicates
             emails = list(set(emails))
             results_dict[contact_url] = emails
-            code_dict[contact_url] = code
+            #code_dict[contact_url] = code
             website_mapping.setdefault(i, []).append(contact_url)
     if (i <= 25):
-        print(f"Current progress: {i} / {len(urls)}         Elapsed time: {round(time.time() - start_time, 1)} secs")
-    if i % 50 == 0 and i != 0:
-        print(f"Current progress: {i} / {len(urls)}         Elapsed time: {round(time.time() - start_time, 1)} secs")
+        print(f"Current progress: {i} / {len(urls)}         Elapsed time: {round(time.time() - start_time, 1)} secs | ({round((time.time() - start_time)/(60*60), 2)} hrs) | {time.asctime(time.localtime(time.time()))}")
+    elif i % 10 == 0 and i != 0:
+        print(f"Current progress: {i} / {len(urls)}         Elapsed time: {round(time.time() - start_time, 1)} secs | ({round((time.time() - start_time)/(60*60), 2)} hrs) | {time.asctime(time.localtime(time.time()))}")
     #Save periodically to be safe
     if i % 50 == 0 and i != 0:
         json.dump(results_dict, open("results_dict.json", 'w' ))
-        json.dump(code_dict, open("code_dict.json", 'w' ))
+        #json.dump(code_dict, open("code_dict.json", 'w' ))
         json.dump(website_mapping, open("website_mapping.json", 'w' ))
 
 json.dump(results_dict, open("results_dict.json", 'w' ))
-json.dump(code_dict, open("code_dict.json", 'w' ))
+#json.dump(code_dict, open("code_dict.json", 'w' ))
 json.dump(website_mapping, open("website_mapping.json", 'w' ))
 
 print(f"Scraping complete.         Elapsed time: {round(time.time() - start_time, 1)} secs\n\n")
@@ -237,7 +239,7 @@ for i, count in enumerate(counts):
 df['emails'] = collapsed_list
 
 #Remove fake emails and false-positives
-to_remove = ["example","test","domain","email","@sentry","wixpress","automattic",".png"]
+to_remove = ["example","test","domain","email","@sentry","wixpress","automattic",".png",".jpg"]
 df['emails'] = df['emails'].apply(lambda lst: [elem for elem in lst if not any(substr in elem for substr in to_remove)])
 
 #to get details on the response codes and the specific website urls that emails came from, look at the code_dict and results_dict, respectively (the keys are the urls)
