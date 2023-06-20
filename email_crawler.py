@@ -144,7 +144,7 @@ df['scrapability_new'] = df['scrapability']
 #Looking at valid (scrapable) urls
 urls = df['website'].tolist()
 results_dict = {}
-code_dict = {}
+#code_dict = {}
 website_mapping = {}
 print(f"Number of websites to scrape: {len(urls)}")
 start_time = time.time()
@@ -178,7 +178,7 @@ for i in range(len(urls)):
     #remove duplicates
     emails = list(set(emails))
     results_dict[url] = emails
-    code_dict[url] = code
+    #code_dict[url] = code
     website_mapping.setdefault(i, []).append(url)
 
     #next, crawl the webpage for "contact" and "about" links
@@ -204,20 +204,20 @@ for i in range(len(urls)):
             #remove duplicates
             emails = list(set(emails))
             results_dict[contact_url] = emails
-            code_dict[contact_url] = code
+            #code_dict[contact_url] = code
             website_mapping.setdefault(i, []).append(contact_url)
     if (i <= 25):
-        print(f"Current progress: {i} / {len(urls)}         Elapsed time: {round(time.time() - start_time, 1)} secs | ({round((time.time() - start_time)/(60*60), 2)}) hrs")
-    if i % 10 == 0 and i != 0:
-        print(f"Current progress: {i} / {len(urls)}         Elapsed time: {round(time.time() - start_time, 1)} secs | ({round((time.time() - start_time)/(60*60), 2)}) hrs")
+        print(f"Current progress: {i} / {len(urls)}         Elapsed time: {round(time.time() - start_time, 1)} secs | ({round((time.time() - start_time)/(60*60), 2)} hrs) | {time.asctime(time.localtime(time.time()))}")
+    elif i % 10 == 0 and i != 0:
+        print(f"Current progress: {i} / {len(urls)}         Elapsed time: {round(time.time() - start_time, 1)} secs | ({round((time.time() - start_time)/(60*60), 2)} hrs) | {time.asctime(time.localtime(time.time()))}")
     #Save periodically to be safe
     if i % 50 == 0 and i != 0:
         json.dump(results_dict, open("results_dict.json", 'w' ))
-        json.dump(code_dict, open("code_dict.json", 'w' ))
+        #json.dump(code_dict, open("code_dict.json", 'w' ))
         json.dump(website_mapping, open("website_mapping.json", 'w' ))
 
 json.dump(results_dict, open("results_dict.json", 'w' ))
-json.dump(code_dict, open("code_dict.json", 'w' ))
+#json.dump(code_dict, open("code_dict.json", 'w' ))
 json.dump(website_mapping, open("website_mapping.json", 'w' ))
 
 print(f"Scraping complete.         Elapsed time: {round(time.time() - start_time, 1)} secs\n\n")
